@@ -272,15 +272,15 @@ def open_windowOneFinger(finger):
             sg.Text("< 100",font=("Helvetica", 16 ))
             ],
         [
-            sg.Button("-3",size=(2, 1), font=("Helvetica", 14 )),
-            sg.Text("                               ", size=(10,1)),
-            sg.Button("+3",size=(2, 1),font=("Helvetica", 14 ))
+            sg.Button("-n",size=(2, 1), font=("Helvetica", 14 )),
+            sg.Text("n=", size=(3,1)) , sg.Input(3,size=(4, 1), key ="nVar", font=("Helvetica", 14 ) ),
+            sg.Button("+n",size=(2, 1),font=("Helvetica", 14 ))
             ],
         [sg.Button("Apply",size=(6, 1),font=("Helvetica", 14 ))],
         [sg.Text("                                    ")],
         [sg.Text("Finger Priority: ",font=("Helvetica", 16 ) ), sg.Input(pri, size=(3 , 1),font=("Helvetica", 16), key="priorityVal", enable_events=True)],
         [sg.Text("‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾")],
-        [sg.Button("Save & Exit", key = "sne",size=(6, 1),font=("Helvetica", 14 ))]
+        [sg.Button("Save & Exit", key = "sne",size=(6, 1),font=("Helvetica", 14 )),sg.Button("Exit w/o Saving", key = "swne",size=(15, 1),font=("Helvetica", 14 )) ]
     ]
 
     window4 =sg.Window("Finger",layout5,element_justification='c')
@@ -288,25 +288,25 @@ def open_windowOneFinger(finger):
     while True:
         event, values = window4.read()
         print(event)
-        if event == "Exit" or event == sg.WIN_CLOSED:
+        if event == "Exit" or event == sg.WIN_CLOSED or event =="swne":
             
             time.sleep(0.75)
             sendme("me")
             print("saved")
             break
             
-        if event == "+3" and currAngle <=100:
+        if event == "+n" and currAngle <=100:
             terp2 = time.time()
             if terp2-terp >= 0.3:
-                currAngle += 3
+                currAngle += int(values["nVar"])
                 time.sleep(0.03)
                 sendCommandWithResponse("mq" + str(currAngle),timediff=2)
                 window4.Element("angleVal").Update(value=currAngle)
             terp = time.time()
-        if event == "-3":
+        if event == "-n":
             terp2 = time.time()
             if terp2-terp >= 0.3 and currAngle >=10:
-                currAngle -=3
+                currAngle -=int(values["nVar"])
                 time.sleep(0.03)
                 sendCommandWithResponse("mq" + str(currAngle),timediff=2)
                 window4.Element("angleVal").Update(value=currAngle)
