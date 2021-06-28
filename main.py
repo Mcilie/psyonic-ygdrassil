@@ -165,6 +165,8 @@ devices = {}
 connected = False 
 device = 0
 client = 0
+bttra = 0
+
 
 
 def handle_rx(a,b):
@@ -258,6 +260,7 @@ def open_windowOneFinger(finger):
     terp = time.time()
     sendCommandWithOutResponse("m")
     sendCommandWithResponse("mf" + finger.split("_")[-1])
+    fee = finger.split("_")[-1]
     currAngle = sendmr("mr")
     print(currAngle)
     currAngle  = float(currAngle.split("=")[-1].strip().replace("'",""))
@@ -295,7 +298,7 @@ def open_windowOneFinger(finger):
             print("saved")
             break
             
-        if event == "+n" and currAngle <=100:
+        if event == "+n" and ((currAngle-int(values["nVar"])) <=100 or fee == "5"):
             terp2 = time.time()
             if terp2-terp >= 0.3:
                 currAngle += int(values["nVar"])
@@ -305,16 +308,21 @@ def open_windowOneFinger(finger):
             terp = time.time()
         if event == "-n":
             terp2 = time.time()
-            if terp2-terp >= 0.3 and currAngle >=10:
+            if terp2-terp >= 0.3 and ((currAngle-int(values["nVar"])) >=10 or fee == "5"):
                 currAngle -=int(values["nVar"])
                 time.sleep(0.03)
                 sendCommandWithResponse("mq" + str(currAngle),timediff=2)
                 window4.Element("angleVal").Update(value=currAngle)
             terp = time.time()
         if event == "Apply":
-            sendCommandWithResponse("mq" + str(values["angleVal"]),timediff=2)
-            time.sleep(0.5)
+
+            time.sleep(0.25)
             setPriority("mp" + str(values["priorityVal"]))
+            print(str(values["priorityVal"]))
+            time.sleep(0.5)
+            sendCommandWithResponse("mq" + str(values["angleVal"]),timediff=2)
+            
+            
             print(str(values["priorityVal"]))
             print("applied")
             
@@ -335,7 +343,7 @@ def open_windowOneGrip(gripID):
  
     print(ee)
     print(sendCommandWithOutResponse(ee))
-    #print(sendCMD("G0~"))
+    #print(sendCMD("G0ÿ"))
     #print(getReadvar())
     #time.sleep(0.2)
     #print(sendCMD("mf0"))
@@ -365,7 +373,7 @@ def open_windowOneGrip(gripID):
         [sg.TabGroup([
             [sg.Tab('Opened',  layout1,key=gripID+"|o", title_color='Black', element_justification= 'center'),
             sg.Tab('Closed', layout2,  key=gripID+"|c",title_color='Black',element_justification= 'center')
-             ][::-1] ], tab_location='centertop',
+             ][::-1] ], tab_location='centertop', change_submits=True,
                        title_color='Black', selected_title_color='Blue',
                        selected_background_color='Gray',font=("Helvetica", 25), key='tg')]]
     window3 =sg.Window("Grip Open Close Selection",tabgrp)
@@ -381,12 +389,12 @@ def open_windowOneGrip(gripID):
         if event == "Exit" or event == sg.WIN_CLOSED:
             print(event)
             break
-        '''if values["tg"].endswith("|c"):
+        if values["tg"].endswith("|c"):
             
-            print(sendCMD(ee))
+            print(sendCommandWithOutResponse(ee))
             
-        if values["tg"].endswith("|o"):
-            print(sendCMD("G0~"))'''
+        elif values["tg"].endswith("|o"):
+            print(sendCommandWithOutResponse("G0ÿ"))
         if event != None and event.startswith("F"):
             print(event)
             open_windowOneFinger(event)
@@ -400,17 +408,17 @@ def open_windowOneGrip(gripID):
 def open_windowGripCTL():
     q = []
     q = [
-        [ sg.Button("Power",size=(9,3), key="G.1.~",font=("Helvetica", 16) ),
-          sg.Button("Key",size=(9,3), key="G.2.~",font=("Helvetica", 16) ),
-          sg.Button("Pinch",size=(9,3), key="G.3.~",font=("Helvetica", 16) ) 
+        [ sg.Button("Power",size=(9,3), key="G.1.ÿ",font=("Helvetica", 16) ),
+          sg.Button("Key",size=(9,3), key="G.2.ÿ",font=("Helvetica", 16) ),
+          sg.Button("Pinch",size=(9,3), key="G.3.ÿ",font=("Helvetica", 16) ) 
         ],
-        [ sg.Button("Chuck",size=(9,3), key="G.4.~",font=("Helvetica", 16) ),
-          sg.Button("RockNRoll",size=(9,3), key="G.5.~",font=("Helvetica", 16) ),
-          sg.Button("Point",size=(9,3), key="G.9.~",font=("Helvetica", 16) ) 
+        [ sg.Button("Chuck",size=(9,3), key="G.4.ÿ",font=("Helvetica", 16) ),
+          sg.Button("RockNRoll",size=(9,3), key="G.5.ÿ",font=("Helvetica", 16) ),
+          sg.Button("Point",size=(9,3), key="G.9.ÿ",font=("Helvetica", 16) ) 
         ],
-        [ sg.Button("Rude",size=(9,3), key="G.A.~",font=("Helvetica", 16) ),
-          sg.Button("Relax",size=(9,3), key="G.C.~",font=("Helvetica", 16) ),
-          sg.Button("Chuck OK",size=(9,3), key="G.F.~",font=("Helvetica", 16) ) 
+        [ sg.Button("Rude",size=(9,3), key="G.A.ÿ",font=("Helvetica", 16) ),
+          sg.Button("Relax",size=(9,3), key="G.C.ÿ",font=("Helvetica", 16) ),
+          sg.Button("Chuck OK",size=(9,3), key="G.F.ÿ",font=("Helvetica", 16) ) 
         ],
         []
     ]
@@ -490,6 +498,8 @@ def forceConnectDevice():
                     global proc 
                     proc = Command("python3 gattProcess.py {}".format(q.name), stdout=Capture(buffer_size=1))
                     proc.run(input=PIPE, async_=True)
+                    #global bttra
+                    #del bttra
                     #^^^^^^^
                     #connFunc()
                     #time.sleep(1)
