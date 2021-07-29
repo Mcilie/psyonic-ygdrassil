@@ -25,7 +25,7 @@ recvStack = []
 
 proc = 0 
 
-def sendms(arg):
+def sendms(arg, timelimit=5):
     global proc
     proc.stdin.write(arg.encode() + b"\n")
     proc.stdin.flush()
@@ -34,25 +34,27 @@ def sendms(arg):
     while True:
         time.sleep(0.05)
         qe = proc.stdout.readline().decode()
+        tee = time.time()
         print("ms "+ qe)
-        if "Saved" in qe:
+        if "Saved" in qe or (time.time()-tee > timelimit):
             for i in range(20):
                 qe = proc.stdout.readline().decode()
             return qe
         else :
             pass
 
-def sendme(arg):
+def sendme(arg, timelimit=5):
     global proc
     proc.stdin.write(arg.encode() + b"\n")
     proc.stdin.flush()
+    tee = time.time()
     retList = []
     qet = 0
     while True:
         time.sleep(0.05)
         qe = proc.stdout.readline().decode()
         print("me:"+qe)
-        if "Exiting" in qe:
+        if "Exiting" in qe or (time.time()-tee > timelimit):
             return qe
         else :
             pass
@@ -81,7 +83,7 @@ def readPriority(arg):
         qe = proc.stdout.readline().decode()
         if "p=" in qe:
             print("PRIORITY "+qe)
-            return qe.split("=")[-1].replace("'","")
+            return qe.split("=")[-1].replace("'","").replace(")","")
         else :
             pass
 
@@ -96,7 +98,7 @@ def setPriority(arg,timestop = 5):
         time.sleep(0.05)
         qe = proc.stdout.readline().decode()
         if "Set" in qe:
-            return qe.split("=")[-1].replace("'","")
+            return qe.split("=")[-1].replace("'","").replace(")","")
         else:
             pass
         if time.time()-tet > timestop:
@@ -136,21 +138,24 @@ def sendCommandWithOutResponse(arg):
     global proc
     proc.stdin.write(arg.encode() + b"\n")
     proc.stdin.flush()
+    print("command w/o response actually sent ")
     
     while True:
         time.sleep(0.05)
         qe = proc.stdout.readline().decode()
+        print(qe)
         if qe == "":
             break
-def sendCommandEatingRespones(arg):
+def sendCommandEatingRespones(arg,timeout=5):
     global proc
     proc.stdin.write(arg.encode() + b"\n")
     proc.stdin.flush()
     voidList = []
+    tee = time.time()
     while True:
         time.sleep(0.05)
         qe = proc.stdout.readline().decode()
-        if qe == "" and len(voidList) > 0:
+        if (qe == "" and len(voidList) > 0) or (time.time()-tee >timeout) :
             break
         elif qe == "" and len(voidList) == 0:
             pass
@@ -263,7 +268,7 @@ def open_windowOneFinger(finger):
     fee = finger.split("_")[-1]
     currAngle = sendmr("mr")
     print(currAngle)
-    currAngle  = float(currAngle.split("=")[-1].strip().replace("'",""))
+    currAngle  = float(currAngle.split("=")[-1].strip().replace("'","").replace(")",""))
     pri = readPriority("mR")
     print(pri)
     layout5 = [
@@ -276,7 +281,7 @@ def open_windowOneFinger(finger):
             ],
         [
             sg.Button("-n",size=(2, 1), font=("Helvetica", 14 )),
-            sg.Text("n=", size=(3,1)) , sg.Input(3,size=(4, 1), key ="nVar", font=("Helvetica", 14 ) ),
+            sg.Text("n=", size=(2,1)) , sg.Input(3,size=(4, 1), key ="nVar", font=("Helvetica", 16 ) ),
             sg.Button("+n",size=(2, 1),font=("Helvetica", 14 ))
             ],
         [sg.Button("Apply",size=(6, 1),font=("Helvetica", 14 ))],
@@ -298,7 +303,7 @@ def open_windowOneFinger(finger):
             print("saved")
             break
             
-        if event == "+n" and ((currAngle-int(values["nVar"])) <=100 or fee == "5"):
+        if event == "+n" and ((currAngle+int(values["nVar"])) <=100 or fee == "5"):
             terp2 = time.time()
             if terp2-terp >= 0.3:
                 currAngle += int(values["nVar"])
@@ -319,7 +324,7 @@ def open_windowOneFinger(finger):
             time.sleep(0.25)
             setPriority("mp" + str(values["priorityVal"]))
             print(str(values["priorityVal"]))
-            time.sleep(0.5)
+            time.sleep(3)
             sendCommandWithResponse("mq" + str(values["angleVal"]),timediff=2)
             
             
@@ -342,7 +347,8 @@ def open_windowOneGrip(gripID):
     ee = gripID.replace(".","")
  
     print(ee)
-    print(sendCommandWithOutResponse(ee))
+    print(sendCommandEatingRespones(ee))
+    print("WOO GRIP JUST GOT SENT BEBE")
     #print(sendCMD("G0ÿ"))
     #print(getReadvar())
     #time.sleep(0.2)
@@ -523,7 +529,12 @@ try:
 
     forceConnectDevice()
     main()
-    asyncio.run(client.disconnect())
+    #sendCommandWithResponse("exit")
 except:
-    asyncio.run(client.disconnect())
+    sendCommandWithResponse("exit")
+    #asyncio.run(client.disconnect())
+try:
+    sendCommandWithResponse("exit")
+except:
+    print("done")
 

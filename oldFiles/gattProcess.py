@@ -15,6 +15,8 @@ UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
 UART_SAFE_SIZE = 20
 
+
+
 #print("Scanning...")
 sys.stdout.flush()
 
@@ -50,6 +52,7 @@ async def run():
     
     async with BleakClient(device) as client:
         
+        
         await client.start_notify(UART_TX_CHAR_UUID, handle_rx)
 
         #print("Connected!")
@@ -75,5 +78,9 @@ async def run():
                 sys.stdout.flush()
                 await asyncio.sleep(0.25)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(run())
+try:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run())
+except:
+    print("gperror")
+
