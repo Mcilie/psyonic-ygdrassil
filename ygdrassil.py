@@ -719,6 +719,7 @@ def mainMenu():
 
         #objgraph.show_growth()
         #BTW if anyone wants it, theres a 20 hiding somewhere in 210, i think its under the iMac.
+        #I left this as an incentive to come back 
         if event == "Exit" or event == sg.WIN_CLOSED:
             break
         if event == "handCTL":
